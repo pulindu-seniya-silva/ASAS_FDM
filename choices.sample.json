@@ -1,0 +1,77 @@
+{
+  "Urban_or_Rural_Area": [
+    "Urban",
+    "Rural"
+  ],
+  "Day_name": [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"
+  ],
+  "Time_of_Day": [
+    "Morning",
+    "Afternoon",
+    "Evening",
+    "Night"
+  ],
+  "Season": [
+    "Winter",
+    "Spring",
+    "Summer",
+    "Autumn"
+  ],
+  "Light_Conditions": [
+    "Daylight",
+    "Dark_lit",
+    "Dark_unlit",
+    "Dark_none",
+    "Dark_unknown"
+  ],
+  "Weather_Conditions": [
+    "Fine_no_high",
+    "Rain_no_high",
+    "Fine_high_winds",
+    "Rain_high_winds",
+    "Fog_mist",
+    "Snow_no_high",
+    "Snow_high_winds",
+    "Other"
+  ],
+  "Road_Surface_Conditions": [
+    "Dry",
+    "Wet or damp",
+    "Frost or ice",
+    "Snow",
+    "Flood_3cm_plus"
+  ],
+  "Road_Type": [
+    "Single carriageway",
+    "Dual carriageway",
+    "Roundabout",
+    "One way street",
+    "Slip road"
+  ],
+  "Junction_Detail": [
+    "Not at junction",
+    "T or staggered junction",
+    "Crossroads",
+    "Roundabout",
+    "Private drive or entrance",
+    "Mini-roundabout",
+    "More than 4 arms (not roundabout)",
+    "Slip road",
+    "Other junction"
+  ],
+  "Junction_Control": [
+    "Give way or uncontrolled",
+    "Unknown",
+    "Auto traffic signal",
+    "Not at junction or within 20 metres",
+    "Stop sign",
+    "Authorised person"
+  ]
+}
