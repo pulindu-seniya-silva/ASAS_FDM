@@ -6,11 +6,15 @@ The app loads the trained `model.pkl` and provides a user interface to input acc
 ---
 
 ## ⚡ Quick Start
+<pre><code>
+# Clone the repository
 
-
-clone the repository
+# Install dependencies
 pip install -r requirements.txt
+
+# Run the Streamlit app
 streamlit run app.py
+</code></pre>
 
 ## 🖥️ Features
 
