@@ -5,3 +5,4 @@ scikit-learn==1.6.1
 joblib==1.5.2
 imbalanced-learn==0.14.0
 streamlit
+gdown

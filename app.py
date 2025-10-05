@@ -14,7 +14,98 @@ st.caption("Uses internal model at **artifacts/model.pkl**. Dropdown options are
 DEFAULT_BUNDLE_PATH = os.path.join("artifacts", "model.pkl")
 CHOICES_PATH = os.path.join("artifacts", "choices.json")
 
+# ================= Google Drive auto-download (added) =================
+# If artifacts/model.pkl is missing, fetch it from your Drive link/ID.
+import re
+from pathlib import Path
+
+# Prefer env var; fallback to hardcoded link/ID if you want.
+# Example public link: https://drive.google.com/uc?id=<FILE_ID>
+GDRIVE_URL = os.getenv("GDRIVE_MODEL_URL", "").strip()  # or put your link here e.g. "https://drive.google.com/uc?id=1_fQHij2b9jjBXIr-jIbPZ2iVdYMlbE6R"
+
+def _extract_drive_id(url_or_id: str):
+    if not url_or_id:
+        return None
+    pats = [
+        r"drive\.google\.com/file/d/([^/]+)/",
+        r"drive\.google\.com/open\?id=([^&]+)",
+        r"drive\.google\.com/uc\?id=([^&]+)",
+    ]
+    for pat in pats:
+        m = re.search(pat, url_or_id)
+        if m:
+            return m.group(1)
+    # Maybe it's already an ID
+    if re.fullmatch(r"[A-Za-z0-9_-]{20,}", url_or_id):
+        return url_or_id
+    return None
+
+def _download_with_gdown(file_id: str, dst: Path) -> bool:
+    try:
+        import gdown  # type: ignore
+    except Exception:
+        return False
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    url = f"https://drive.google.com/uc?id={file_id}"
+    out = gdown.download(url=url, output=str(dst), quiet=True, fuzzy=True)
+    return bool(out and Path(out).exists() and Path(out).stat().st_size > 0)
+
+def _download_with_requests(url: str, dst: Path) -> bool:
+    try:
+        import requests  # type: ignore
+    except Exception:
+        return False
+    sess = requests.Session()
+    dst.parent.mkdir(parents=True, exist_ok=True)
+
+    def _confirm_token(resp):
+        for k, v in resp.cookies.items():
+            if k.startswith("download_warning"):
+                return v
+        return None
+
+    def _save(resp, path: Path, chunk=32768):
+        with path.open("wb") as f:
+            for c in resp.iter_content(chunk_size=chunk):
+                if c:
+                    f.write(c)
+
+    r1 = sess.get(url, stream=True)
+    if r1.status_code != 200:
+        return False
+    token = _confirm_token(r1)
+    if token:
+        r1 = sess.get(url, params={"confirm": token}, stream=True)
+        if r1.status_code != 200:
+            return False
+    _save(r1, dst)
+    return dst.exists() and dst.stat().st_size > 0
+
+def ensure_model_present():
+    """Download artifacts/model.pkl from Drive if it's missing/empty."""
+    path = Path(DEFAULT_BUNDLE_PATH)
+    if path.exists() and path.stat().st_size > 0:
+        return  # already there
+    if not GDRIVE_URL:
+        return  # no link provided; keep your original error flow below
+    file_id = _extract_drive_id(GDRIVE_URL)
+    if not file_id:
+        return
+    # Try gdown, then requests
+    ok = False
+    try:
+        ok = _download_with_gdown(file_id, path)
+    except Exception:
+        ok = False
+    if not ok:
+        url = f"https://drive.google.com/uc?id={file_id}"
+        ok = _download_with_requests(url, path)
+# ================= /Google Drive auto-download =================
+
 # ---------- Load model bundle ----------
+# (added) Try to fetch from Drive before enforcing existence
+ensure_model_present()
+
 if not os.path.exists(DEFAULT_BUNDLE_PATH):
     st.error("Model bundle not found at artifacts/model.pkl. Please place the saved model there.")
     st.stop()
@@ -247,4 +338,3 @@ if submitted:
         st.error("Prediction failed. Tip: use dropdown values for categoricals.")
         with st.expander("Error details"):
             st.code(err)
-
