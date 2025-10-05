@@ -17,6 +17,7 @@ CHOICES_PATH = os.path.join("artifacts", "choices.json")
 # ================= Google Drive auto-download (added) =================
 # If artifacts/model.pkl is missing, fetch it from your Drive link/ID.
 import re
+import time
 from pathlib import Path
 
 # Prefer env var; fallback to your provided public link/ID.
@@ -83,15 +84,25 @@ def _download_with_requests(url: str, dst: Path) -> bool:
     return dst.exists() and dst.stat().st_size > 0
 
 def ensure_model_present():
-    """Download artifacts/model.pkl from Drive if it's missing/empty."""
+    """Download artifacts/model.pkl from Drive if it's missing/empty, with UI status."""
     path = Path(DEFAULT_BUNDLE_PATH)
     if path.exists() and path.stat().st_size > 0:
         return  # already there
+
     if not GDRIVE_URL:
         return  # no link provided; keep your original error flow below
+
     file_id = _extract_drive_id(GDRIVE_URL)
     if not file_id:
         return
+
+    t0 = time.time()
+    # Show status if Streamlit is ready (safe try/except)
+    try:
+        st.info("⬇️ Downloading model (~300 MB) from Google Drive… first run can be slow.")
+    except Exception:
+        pass
+
     # Try gdown, then requests
     ok = False
     try:
@@ -101,6 +112,16 @@ def ensure_model_present():
     if not ok:
         url = f"https://drive.google.com/uc?id={file_id}"
         ok = _download_with_requests(url, path)
+
+    # Report result
+    try:
+        if ok and path.exists() and path.stat().st_size > 0:
+            mb = path.stat().st_size / 1_000_000
+            st.success(f"✅ Model ready ({mb:.1f} MB) in {time.time() - t0:.1f}s")
+        else:
+            st.error("❌ Model download failed. Please check your Drive link/access.")
+    except Exception:
+        pass
 # ================= /Google Drive auto-download =================
 
 # ---------- Load model bundle ----------
