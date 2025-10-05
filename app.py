@@ -19,9 +19,10 @@ CHOICES_PATH = os.path.join("artifacts", "choices.json")
 import re
 from pathlib import Path
 
-# Prefer env var; fallback to hardcoded link/ID if you want.
+# Prefer env var; fallback to your provided public link/ID.
 # Example public link: https://drive.google.com/uc?id=<FILE_ID>
-GDRIVE_URL = os.getenv("GDRIVE_MODEL_URL", "").strip()  # or put your link here e.g. "https://drive.google.com/uc?id=1_fQHij2b9jjBXIr-jIbPZ2iVdYMlbE6R"
+GDRIVE_URL = os.getenv("GDRIVE_MODEL_URL", "").strip() or \
+             "https://drive.google.com/uc?id=1_fQHij2b9jjBXIr-jIbPZ2iVdYMlbE6R"
 
 def _extract_drive_id(url_or_id: str):
     if not url_or_id:
